@@ -200,20 +200,20 @@ class FlamyConfVars(val env: Environment, val conf: Config) extends Logging { se
     )
 
   object HIVE_METASTORE_JDBC_USER extends
-    ConfVar[String](
+    ConfVar[Option[String]](
       confLevel = Env,
       varName = "hive.metastore.jdbc.user",
-      defaultValue = Some("flamy"),
-      validator = Validator.Required(),
+      defaultValue = None,
+      validator = Validator.Optional(),
       description = "JDBC user to use when connecting to the Hive Metastore database. Required in direct mode of the meta.fetcher."
     )
 
   object HIVE_METASTORE_JDBC_PASSWORD extends
-    ConfVar[String](
+    ConfVar[Option[String]](
       confLevel = Env,
       varName = "hive.metastore.jdbc.password",
-      defaultValue = Some("flamyPassword"),
-      validator = Validator.Required(),
+      defaultValue = None,
+      validator = Validator.Optional(),
       description = "JDBC password to use when connecting to the Hive Metastore database. Required in direct mode of the meta.fetcher."
     )
 

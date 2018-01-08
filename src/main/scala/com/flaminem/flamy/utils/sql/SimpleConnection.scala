@@ -18,6 +18,7 @@ package com.flaminem.flamy.utils.sql
 
 import java.sql.{Connection, DriverManager, Statement}
 
+import com.flaminem.flamy.conf.ConfigurationException
 import com.flaminem.flamy.model.exceptions.FlamyException
 import com.flaminem.flamy.utils.sql.hive.CachedResultSet
 
@@ -28,8 +29,8 @@ import scala.util.control.NonFatal
   */
 class SimpleConnection(
   val jdbcUri: String,
-  val jdbcUser: String,
-  val jdbcPassword: String
+  val jdbcUser: Option[String],
+  val jdbcPassword: Option[String]
 ) extends AutoCloseable {
 
   import SimpleConnection._
@@ -37,7 +38,12 @@ class SimpleConnection(
   private val con: Connection =
     try {
       Class.forName(connectionType.driverClass)
-      DriverManager.getConnection(jdbcUri, jdbcUser, jdbcPassword)
+      (jdbcUser, jdbcPassword) match {
+        case (Some(user), Some(password)) =>
+          DriverManager.getConnection(jdbcUri, user, password)
+        case _ =>
+          DriverManager.getConnection(jdbcUri)
+      }
     }
     catch {
       case e : java.lang.ClassNotFoundException if connectionType == ConnectionType.MySQL =>
