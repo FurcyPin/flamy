@@ -18,6 +18,7 @@ package com.flaminem.flamy.parsing
 
 import com.flaminem.flamy.model.Variables
 import com.flaminem.flamy.parsing.model.TableDependency
+import jodd.util.URLDecoder
 import org.scalatest.FunSuite
 
 /**
@@ -27,14 +28,14 @@ class MetaParser$Test extends FunSuite{
 
 
   test("test") {
-    val filePath: String = this.getClass.getClassLoader.getResource("test/db_dest.db/meta_table/META.properties").getFile
+    val filePath: String = URLDecoder.decode(this.getClass.getClassLoader.getResource("test/db_dest.db/meta_table/META.properties").getFile)
     val t: TableDependency = MetaParser.parseTableDependencies(filePath)
     val expected: String = "TableDependency(type=EXT, name=meta_table, schema=db_dest, tableDeps[db_out.table_out1, db_out.table_out2])"
     assert(expected === t.toString)
   }
 
   test("testParseVariables") {
-    val filePath: String = this.getClass.getClassLoader.getResource("test/VARIABLES.properties").getFile
+    val filePath: String = URLDecoder.decode(this.getClass.getClassLoader.getResource("test/VARIABLES.properties").getFile)
     val actual: Variables = MetaParser.parseVariables(filePath)
     val expected: Variables = new Variables
     expected.put("DATE", "\"2014-01-01\"")
