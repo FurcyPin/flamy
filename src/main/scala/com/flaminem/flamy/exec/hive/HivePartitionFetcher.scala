@@ -106,8 +106,7 @@ object HivePartitionFetcher extends Logging{
       case "client" =>
         new ClientHivePartitionFetcher(context)
       case "default" =>
-        Try(new DirectHivePartitionFetcher(context))
-        .getOrElse(new ClientHivePartitionFetcher(context))
+        Try(new DirectHivePartitionFetcher(context)).getOrElse(new ClientHivePartitionFetcher(context))
       case _ => throw new ConfigurationException(f"${context.HIVE_META_FETCHER_TYPE.propertyKey} is not well defined.\n" +
         f"Developers: this error should have been prevented by a Configuration Validator")
     }
