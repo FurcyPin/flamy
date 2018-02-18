@@ -239,9 +239,9 @@ object FileIndex {
 
     val schemaFiles = new mutable.HashMap[SchemaName, SchemaFile]()
     for {
-      dbDir: File <- listDatabaseDirectories(dbPaths)
+      schemaDir: File <- listDatabaseDirectories(dbPaths)
     } {
-      val schemaFile = new MissingSchemaFile(dbDir)
+      val schemaFile = new MissingSchemaFile(schemaDir)
       schemaFiles += schemaFile.schemaName -> schemaFile
     }
 

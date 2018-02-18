@@ -68,10 +68,10 @@ trait SchemaFile extends ItemFile {
   override def getItemName: ItemName = schemaName
 
   override def getRelativePath: String = {
-    val schema: Path = path.getParent
+    val schemaPath: Path = path.getParent
     //noinspection ScalaStyle
-    if (schema != null) {
-      val schemaName: String = schema.getName.toLowerCase
+    if (schemaPath != null) {
+      val schemaName: String = schemaPath.getName.toLowerCase
       schemaName + "/" + fileName
     }
     else {
@@ -94,15 +94,15 @@ class ExistingSchemaFile(override val file: File) extends SchemaFile with Existi
 }
 
 
-class MissingSchemaFile(dir: File) extends SchemaFile {
+class MissingSchemaFile(schemaDir: File) extends SchemaFile {
 
-  val schemaName = SchemaName(FileUtils.removeDbSuffix(dir.getName))
+  val schemaName = SchemaName(FileUtils.removeDbSuffix(schemaDir.getName))
 
   override val fileType: FileType = FileType.CREATE_SCHEMA
 
   override def text: String = s"CREATE SCHEMA IF NOT EXISTS $schemaName"
 
-  override def path: Path = new Path(dir.getPath)
+  override def path: Path = new Path(schemaDir.getPath + "/.")
 
   override def fileName: String = s"$path/${fileType.commonName}"
 

@@ -76,7 +76,7 @@ class AutoClose[A](val resource: A, val closingFunction: (A) => Unit) {
 
 /**
   * Create a resource that will be automatically closed after being used.
-  * The proper syntax to use it, is with a for ... syntax.
+  * The proper syntax to use it, is with a for comprehension.
   * @example {{{
   *   val result: Result =
   *   for {
@@ -93,7 +93,7 @@ object AutoClose {
 
   /**
     * Create a resource that will be automatically closed after being used.
-    * The proper syntax to use it, is with a for ... syntax.
+    * The proper syntax to use it, is with a for comprehension.
     * @example {{{
     *   val result: Result =
     *   for {
@@ -115,7 +115,7 @@ object AutoClose {
 
   /**
     * Create a resource that will be automatically closed after being used.
-    * The proper syntax to use it, is with a for ... syntax.
+    * The proper syntax to use it, is with a for comprehension.
     * @example {{{
     *   val result: Result =
     *   for {

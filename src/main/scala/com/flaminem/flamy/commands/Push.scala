@@ -41,7 +41,7 @@ class Push extends Subcommand("push") with FlamySubcommand {
   val schemas = new Subcommand("schemas") with FlamySubcommand {
     banner("Create on the specified environment the schemas that are present in the model and missing in the environment")
     val environment: ScallopOption[Environment] =
-      opt(name = "on", descr = "Specifies environment to run on", required = true, noshort = true)
+      opt(name = "on", descr = "Specifies environment to push to", required = true, noshort = true)
     val dryRun: ScallopOption[Boolean] =
       opt(name = "dry", default = Some(false), descr = "Perform a dry-run", required = false, noshort = true)
     val items: ScallopOption[List[String]] =
