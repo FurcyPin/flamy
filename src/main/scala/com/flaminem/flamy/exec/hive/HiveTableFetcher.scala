@@ -76,7 +76,7 @@ trait HiveTableFetcher extends AutoCloseable{
     * @return
     */
   def listTableNames(items: ItemName*): Iterable[TableName] = {
-    listTableNames(new ItemFilter(items, true))
+    listTableNames(ItemFilter(items, acceptIfEmpty = true))
   }
 
   def listTables(itemFilter: ItemFilter): Iterable[TableInfo] = {
@@ -84,7 +84,7 @@ trait HiveTableFetcher extends AutoCloseable{
   }
 
   def listTables(items: ItemName*): Iterable[TableInfo] = {
-    items.collect{case tableName: TableName => getTable(tableName)}.flatten
+    listTableNames(ItemFilter(items, acceptIfEmpty = true)).flatMap{getTable}
   }
 
 }
