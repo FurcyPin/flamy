@@ -17,19 +17,13 @@
 package com.flaminem.flamy.commands
 
 import com.flaminem.flamy.commands.utils.FlamySubcommand
-import com.flaminem.flamy.conf.spark.ModelSparkContext
 import com.flaminem.flamy.conf.{Environment, FlamyContext, FlamyGlobalOptions}
 import com.flaminem.flamy.exec.FlamyRunner
-import com.flaminem.flamy.exec.files.{FileRunner, ItemFileAction}
-import com.flaminem.flamy.exec.hive.{HivePartitionFetcher, ModelHivePartitionFetcher}
 import com.flaminem.flamy.exec.utils._
 import com.flaminem.flamy.exec.utils.io.FlamyOutput
 import com.flaminem.flamy.graph.TableGraph
-import com.flaminem.flamy.model._
 import com.flaminem.flamy.model.core.Model
-import com.flaminem.flamy.model.files.FilePath
 import com.flaminem.flamy.model.names.ItemName
-import org.apache.spark.sql.SQLContext
 import org.rogach.scallop.{ScallopConf, ScallopOption, Subcommand}
 
 import scala.language.reflectiveCalls
