@@ -118,7 +118,7 @@ class ClientHivePartitionFetcher(context: FlamyContext) extends HivePartitionFet
     }
   }
 
-  override def listTablesNamesInSchema(schema: SchemaName): List[TableName] = {
+  override def listTableNamesInSchema(schema: SchemaName): List[TableName] = {
     cli.getAllTables(schema.fullName).toList.map{TableName(schema,_)}
   }
 

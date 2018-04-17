@@ -49,7 +49,7 @@ class ModelHiveTableFetcher(context: FlamyContext, items: ItemName*) extends Hiv
 
   override def getTable(tableName: TableName): Option[TableInfo] = preModel.getTable(tableName)
 
-  override def listTablesNamesInSchema(schema: SchemaName): Iterable[TableName] = fileIndex.getTableNamesInSchema(schema)
+  override def listTableNamesInSchema(schema: SchemaName): Iterable[TableName] = fileIndex.getTableNamesInSchema(schema)
 
   override def close(): Unit = ()
 

@@ -470,7 +470,7 @@ class DirectHivePartitionFetcher(context: FlamyContext) extends HivePartitionFet
     }
   }
 
-  override def listTablesNamesInSchema(schema: SchemaName): Iterable[TableName] = {
+  override def listTableNamesInSchema(schema: SchemaName): Iterable[TableName] = {
     tableNamesData.apply(schema).map{r => TableName(schema, r(TABLE_NAME))}.toSeq.sortBy{x=>x}
   }
 

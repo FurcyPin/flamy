@@ -126,7 +126,7 @@ class DummyHivePartitionFetcher(model: Model, desc: Traversable[(String,String,S
     }
   }
 
-  override def listTablesNamesInSchema(schema: SchemaName): Iterable[TableName] = {
+  override def listTableNamesInSchema(schema: SchemaName): Iterable[TableName] = {
     tableNameSet.filter{_.isInSchema(schema)}
   }
 

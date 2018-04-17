@@ -33,7 +33,7 @@ trait HiveTableFetcher extends AutoCloseable{
 
   def listSchemasWithLocation: Iterable[SchemaWithInfo]
 
-  def listTablesNamesInSchema(schema: SchemaName): Iterable[TableName]
+  def listTableNamesInSchema(schema: SchemaName): Iterable[TableName]
 
   def getTable(tableName: TableName): Option[TableInfo]
 
@@ -58,7 +58,7 @@ trait HiveTableFetcher extends AutoCloseable{
   }
 
   def listTableNames: Iterable[TableName] = {
-    listSchemaNames.flatMap{listTablesNamesInSchema}
+    listSchemaNames.flatMap{listTableNamesInSchema}
   }
 
   /**

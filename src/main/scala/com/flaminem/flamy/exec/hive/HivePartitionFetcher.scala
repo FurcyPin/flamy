@@ -44,7 +44,7 @@ trait HivePartitionFetcher extends HiveTableFetcher {
   def printAllPartitionsInSchema(schema: SchemaName): Unit = {
     val sb: StringBuilder = new StringBuilder
     sb ++= schema.fullName ++ "\n"
-    listTablesNamesInSchema(schema).foreach {
+    listTableNamesInSchema(schema).foreach {
       table =>
         sb ++= "\t" ++ table.name
         val partitions = listPartitionNames(table)
@@ -75,7 +75,7 @@ trait HivePartitionFetcher extends HiveTableFetcher {
     listSchemaNames.foreach{
       db =>
         sb++db.fullName++"\n"
-        listTablesNamesInSchema(db).foreach{
+        listTableNamesInSchema(db).foreach{
           table =>
             getLastPartition(table) match {
               case Some(p) => sb++"\t"++table.name++" ["++p.toString++"]"

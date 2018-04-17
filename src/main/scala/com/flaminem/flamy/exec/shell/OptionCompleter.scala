@@ -58,7 +58,7 @@ class OptionCompleter(handler: CandidateListCompletionHandler, rootContext: Flam
           )
         case s::t::Nil if SchemaName.parse(s).isDefined => /* case 3: "schema.something" */
           Candidates(
-            fetcher.listTablesNamesInSchema(SchemaName(s))
+            fetcher.listTableNamesInSchema(SchemaName(s))
               .filter{_.name.startsWith(t)}
               .filterNot{itemFilter(_)}
               .map{_.name}

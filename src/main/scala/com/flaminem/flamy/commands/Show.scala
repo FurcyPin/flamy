@@ -63,7 +63,7 @@ class Show extends Subcommand("show") with FlamySubcommand with Logging {
       val allTables: Iterable[TableName] = fetcher.listTableNames
       val sb: StringBuilder = new StringBuilder(f"Found ${schemas.size} schemas with ${allTables.size} tables:")
       for (schema <- schemas) {
-        val tables = fetcher.listTablesNamesInSchema(schema)
+        val tables = fetcher.listTableNamesInSchema(schema)
         sb.append("\n    - " + schema + " (" + tables.size + ")")
       }
       println(sb)
