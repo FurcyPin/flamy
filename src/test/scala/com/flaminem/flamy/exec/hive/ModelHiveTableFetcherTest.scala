@@ -33,6 +33,7 @@ class ModelHiveTableFetcherTest extends FreeSpec {
     assert(fetcher.listTables().size == 8)
     assert(fetcher.listTables("db_dest.dest", "db_dest.dest1", "db_dest.dest2").size == 3)
     assert(fetcher.listTables("db_dest").size == 5)
+    assert(fetcher.listTables("db_dest", "db_dest.dest", "db_dest.dest1", "db_dest.dest2").size == 5)
     assert(fetcher.listTables("db_source").map{_.tableName}.toSet === Set(TableName("db_source","source"), TableName("db_source","source_view")) )
     assert(fetcher.listTables("db_source", "db_dest.dest").map{_.tableName}.toSet === Set(TableName("db_source","source"), TableName("db_source","source_view"), TableName("db_dest","dest")) )
     assert(fetcher.listTables("db_dest.dest", "db_dest.dest1").map{_.tableName}.toSet === Set(TableName("db_dest","dest"), TableName("db_dest","dest1")) )

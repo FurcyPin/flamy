@@ -84,7 +84,14 @@ trait HiveTableFetcher extends AutoCloseable{
   }
 
   def listTables(items: ItemName*): Iterable[TableInfo] = {
-    listTableNames(ItemFilter(items, acceptIfEmpty = true)).flatMap{getTable}
+    if(items.isEmpty){
+      listTableNames().flatMap{getTable}
+    }
+    else {
+      val schemaNames = items.collect{case s : SchemaName => s}
+      val tableNames: Seq[TableName] = (items.collect{case t : TableName => t} ++ schemaNames.flatMap(listTableNamesInSchema)).distinct.sorted
+      tableNames.flatMap{getTable}
+    }
   }
 
 }
