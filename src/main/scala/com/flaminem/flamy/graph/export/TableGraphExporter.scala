@@ -123,7 +123,7 @@ abstract class TableGraphExporter(tableGraph: TableGraph) extends TableGraphBase
 
   /**
    * format a cell, which is a set of lines
- *
+   *
    * @param cell
    * @return
    */

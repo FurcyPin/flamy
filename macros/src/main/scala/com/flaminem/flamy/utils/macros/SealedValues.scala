@@ -78,9 +78,7 @@ object SealedValues {
             sym
           }
           else {
-            sym.asInstanceOf[
-              scala.reflect.internal.Symbols#Symbol
-              ].sourceModule.asInstanceOf[Symbol]
+            sym.asInstanceOf[scala.reflect.internal.Symbols#Symbol].sourceModule.asInstanceOf[Symbol]
           }
         )
 
