@@ -56,7 +56,7 @@ class TableGraphFullExporter(preTableGraph: TableGraph) extends TableGraphExport
 
   override def formatTableVertex(td: TableName): Seq[Seq[Seq[AlignedString]]] = {
     val nodeName = td.name
-    val header: Seq[Seq[AlignedString]] = Seq(Seq(AlignedString(nodeName, Alignment.CENTER)))
+    val header: Seq[Seq[AlignedString]] = Seq(Seq(AlignedString(nodeName, Alignment.LEFT)))
     val columns: Seq[Seq[AlignedString]] =
       model.getTable(td.fullName).toSeq.flatMap{table => table.columns.map{formatColumn}}
     val partitions: Seq[Seq[AlignedString]] =
