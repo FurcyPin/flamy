@@ -17,10 +17,8 @@
 package com.flaminem.flamy.conf
 
 import com.flaminem.flamy.conf.ConfLevel._
-import com.flaminem.flamy.exec.utils.io.FlamyOutput
 import com.flaminem.flamy.utils.logging.Logging
 import com.flaminem.flamy.utils.macros.SealedValues
-import org.apache.commons.configuration.Configuration
 import com.typesafe.config.Config
 
 import scala.collection.JavaConversions._
