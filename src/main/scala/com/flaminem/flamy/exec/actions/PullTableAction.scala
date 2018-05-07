@@ -4,7 +4,7 @@ import java.io.{FileOutputStream, PrintStream}
 
 import com.flaminem.flamy.conf.FlamyContext
 import com.flaminem.flamy.exec.utils.Action
-import com.flaminem.flamy.model.TableInfo
+import com.flaminem.flamy.model.{IOFormat, TableInfo}
 import com.flaminem.flamy.model.metadata.{TableWithInfo, TableWithParams}
 import com.flaminem.flamy.utils.AutoClose
 import org.apache.hadoop.fs.{FileSystem, Path}
@@ -56,12 +56,24 @@ class PullTableAction(val tableInfo: TableInfo, tableParams: TableWithParams, sc
               p => s"  ${p.formattedColumnName} ${p.columnType.get}"
             }.mkString("PARTITIONED BY (\n", ",\n", "\n)\n")
           }
-        val storedAsString = s"STORED AS ${tableParams.ioFormat.toString}\n"
+        val storedAsString = buildStoredAsString(tableParams.ioFormat)
         val locationString = s"LOCATION '${tableParams.location}'\n"
         ps.println(s"$createString$columnsString$partitionString$storedAsString$locationString;")
       }
     }
   }
 
+  private def buildStoredAsString(ioFormat: IOFormat): String = {
+    val (string, isStandard) = ioFormat.toStandardString
+    if(isStandard) {
+      s"STORED AS $string\n"
+    }
+    else {
+      s"""ROW FORMAT SERDE '${ioFormat.serde}'
+         |STORED AS INPUTFORMAT '${ioFormat.inputFormat}'
+         |OUTPUTFORMAT '${ioFormat.outputFormat}'
+         |""".stripMargin
+    }
+  }
 
 }
