@@ -17,9 +17,8 @@
 package com.flaminem.flamy.exec.hive
 
 import java.util
-import javax.security.auth.Subject
 
-import com.flaminem.flamy.conf.{FlamyConfVars, FlamyContext}
+import com.flaminem.flamy.conf.FlamyContext
 import com.flaminem.flamy.exec.utils.io.FlamyOutput
 import com.flaminem.flamy.model._
 import com.flaminem.flamy.model.exceptions.FlamyException
@@ -27,16 +26,10 @@ import com.flaminem.flamy.model.metadata.{SchemaWithInfo, TableWithInfo, TableWi
 import com.flaminem.flamy.model.names.{SchemaName, TableName, TablePartitionName}
 import com.flaminem.flamy.model.partitions._
 import org.apache.hadoop.hive.conf.HiveConf
-import org.apache.hadoop.hive.metastore.{HiveMetaStoreClient, IMetaStoreClient, RetryingMetaStoreClient}
 import org.apache.hadoop.hive.metastore.api.{Database, MetaException, NoSuchObjectException}
-import org.apache.hadoop.security.UserGroupInformation
-import javax.security.auth.kerberos.KerberosPrincipal
-import javax.security.auth.kerberos.KerberosTicket
-
-import org.apache.hadoop.conf.Configuration
+import org.apache.hadoop.hive.metastore.{HiveMetaStoreClient, IMetaStoreClient}
 
 import scala.collection.JavaConversions._
-import scala.util.control.NonFatal
 
 /**
  * Created by fpin on 11/3/14.
