@@ -98,6 +98,14 @@ increase the memory allocated to sbt.
 sbt test
 ```
 
+### (Optional) Running integration tests :
+
+Use the following command. In case you encounter PermGenSpace or Metaspace errors, 
+increase the memory allocated to sbt.
+```
+sbt "project integration_tests" it:test
+```
+
 ### Extra java options :
 
 When running flamy, you can add extra java options to your environment, for example :
