@@ -48,7 +48,7 @@ These properties can be set for each environment you want to configure. Just rep
 ``flamy.env.<ENV>.hive.meta.fetcher.type`` "direct" \| "client" \| "default"  (default: "default")  
 |br| *The implementation used to retrieve metadata from Hive ('client' or 'direct').*
 
-``flamy.env.<ENV>.hive.metastore.uri`` String    
+``flamy.env.<ENV>.hive.metastore.uris`` String    
 |br| *Thrift URI of the Hive Metastore. Required in client mode of the meta.fetcher.*
 
 ``flamy.env.<ENV>.hive.metastore.jdbc.uri`` String    

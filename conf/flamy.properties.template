@@ -30,7 +30,7 @@ flamy.udf.classpath = <colon-separated path to the custom UDF jars>
 flamy.env.dev.hive.meta.fetcher.type = client
 
 # required for client fetcher.
-flamy.env.dev.hive.metastore.uri = "thrift://<HIVE_METASTORE_URL>:<HIVE_METASTORE_PORT>"
+flamy.env.dev.hive.metastore.uris = "thrift://<HIVE_METASTORE_URL>:<HIVE_METASTORE_PORT>"
 
 flamy.env.dev.hive.server.uri   = "<DEV_HIVE_SERVER_URL>:<DEV_HIVE_SERVER_PORT>"
 flamy.env.dev.hive.server.login = flamy
