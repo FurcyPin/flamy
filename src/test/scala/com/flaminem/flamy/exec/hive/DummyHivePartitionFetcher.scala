@@ -19,7 +19,7 @@ package com.flaminem.flamy.exec.hive
 import com.flaminem.flamy.model._
 import com.flaminem.flamy.model.core.Model
 import com.flaminem.flamy.model.exceptions.FlamyException
-import com.flaminem.flamy.model.metadata.{SchemaWithInfo, TableWithInfo}
+import com.flaminem.flamy.model.metadata.{SchemaWithInfo, TableWithInfo, TableWithParams}
 import com.flaminem.flamy.model.names.{SchemaName, TableName, TablePartitionName}
 import com.flaminem.flamy.model.partitions._
 import com.flaminem.flamy.utils.collection.toPairTraversableLikeExtension
@@ -70,8 +70,14 @@ class DummyHivePartitionFetcher(model: Model, desc: Traversable[(String,String,S
   //TODO: implement this
   override def listSchemasWithInfo: Iterable[SchemaWithInfo] = ???
 
+  //TODO: implement this
+  override def listSchemasWithLocation: Iterable[SchemaWithInfo] = ???
+
   // TODO: implement this or create HiveTableInfoFetcher trait?
   override def getTableWithInfo(table: TableName): Option[TableWithInfo] = ???
+
+  // TODO: implement this or create HiveTableInfoFetcher trait?
+  override def getTableWithParams(table: TableName): Option[TableWithParams] = ???
 
   override def getPartition(tp: TablePartitionName): Option[PartitionWithInfo] = {
     info.get(tp).map{

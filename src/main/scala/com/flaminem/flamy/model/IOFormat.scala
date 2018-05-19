@@ -32,78 +32,92 @@ case class IOFormat (
     * For other formats, the full information is printed.
     * @return
     */
-  override def toString: String = this match {
+  override def toString: String = toStandardString._1
+
+    /**
+    * Recognize common formats and return their generic names.
+    * For other formats, the full information is printed.
+    * @return A pair indicating the standard string, and if this correspond to a built-in Hive type.
+    */
+  def toStandardString: (String, Boolean) = this match {
     case
       IOFormat(
         "org.apache.hadoop.hive.ql.io.orc.OrcInputFormat",
         "org.apache.hadoop.hive.ql.io.orc.OrcOutputFormat",
         "org.apache.hadoop.hive.ql.io.orc.OrcSerde"
       )
-      => "ORC"
+      => ("ORC", true)
     case
       IOFormat(
         "org.apache.hadoop.hive.ql.io.RCFileInputFormat",
         "org.apache.hadoop.hive.ql.io.RCFileOutputFormat",
         "org.apache.hadoop.hive.serde2.columnar.ColumnarSerDe"
       )
-      => "RCFILE"
+      => ("RCFILE", true)
     case
       IOFormat(
         "org.apache.hadoop.mapred.SequenceFileInputFormat",
         "org.apache.hadoop.hive.ql.io.HiveSequenceFileOutputFormat",
         "org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe"
       )
-      => "SEQUENCEFILE"
+      => ("SEQUENCEFILE", true)
     case
       IOFormat(
         "org.apache.hadoop.hive.ql.io.avro.AvroContainerInputFormat",
         "org.apache.hadoop.hive.ql.io.avro.AvroContainerOutputFormat",
         "org.apache.hadoop.hive.serde2.avro.AvroSerDe"
       )
-      => "AVRO"
+      => ("AVRO", true)
     case
       IOFormat(
         "org.apache.hadoop.mapred.TextInputFormat",
         "org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat",
         "org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe"
       )
-      => "TEXTFILE"
+      => ("TEXTFILE", true)
     case
       IOFormat(
         "org.apache.hadoop.hive.ql.io.parquet.MapredParquetInputFormat",
         "org.apache.hadoop.hive.ql.io.parquet.MapredParquetOutputFormat",
         "org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe"
       )
-      => "PARQUET"
+      => ("PARQUET", true)
     case
       IOFormat(
         "parquet.hive.DeprecatedParquetInputFormat",
         "parquet.hive.DeprecatedParquetOutputFormat",
         "parquet.hive.serde.ParquetHiveSerDe"
       )
-      => "PARQUET (deprecated)"
+      => ("PARQUET (deprecated)", false)
+    case
+      IOFormat(
+      "com.backtype.hadoop.pail.SequenceFileFormat$SequenceFilePailInputFormat",
+      "org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat",
+      _
+      )
+    => ("PAIL", false)
     case
       IOFormat(
         "org.apache.hadoop.mapred.SequenceFileInputFormat",
         "org.apache.hadoop.hive.ql.io.HiveSequenceFileOutputFormat",
         null
       )
-      => "VIEW" /* this table is a view */
+      => ("VIEW", false) /* this table is a view */
     case
       IOFormat(
         null,
         null,
         null
       )
-    => "PRESTO VIEW" /* views created by presto have no IOFormat at all */
+    => ("PRESTO VIEW", false) /* views created by presto have no IOFormat at all */
     case
       IOFormat(
         null,
         null,
         "org.apache.hadoop.hive.hbase.HBaseSerDe"
       )
-      => "HBASE" // this table is a view
-    case _ => s"TableFormat($inputFormat,$outputFormat,$serde)"
+      => ("HBASE", false) // this table is a view
+    case _ => (s"TableFormat($inputFormat,$outputFormat,$serde)", false)
   }
 
 }

@@ -20,7 +20,7 @@ import com.flaminem.flamy.conf.FlamyContext
 import com.flaminem.flamy.model._
 import com.flaminem.flamy.model.core.{IncompleteModel, Model}
 import com.flaminem.flamy.model.files.FileIndex
-import com.flaminem.flamy.model.metadata.{SchemaWithInfo, TableWithInfo}
+import com.flaminem.flamy.model.metadata.{SchemaWithInfo, TableWithInfo, TableWithParams}
 import com.flaminem.flamy.model.names.{ItemName, SchemaName, TableName}
 
 /**
@@ -39,7 +39,13 @@ class ModelHiveTableFetcher(context: FlamyContext, items: ItemName*) extends Hiv
   override def listSchemasWithInfo: Iterable[SchemaWithInfo] = ???
 
   // TODO: implement this or create HiveTableInfoFetcher trait?
+  override def listSchemasWithLocation: Iterable[SchemaWithInfo] = ???
+
+  // TODO: implement this or create HiveTableInfoFetcher trait?
   override def getTableWithInfo(table: TableName): Option[TableWithInfo] = ???
+
+  // TODO: implement this or create HiveTableInfoFetcher trait?
+  override def getTableWithParams(table: TableName): Option[TableWithParams] = ???
 
   override def getTable(tableName: TableName): Option[TableInfo] = preModel.getTable(tableName)
 

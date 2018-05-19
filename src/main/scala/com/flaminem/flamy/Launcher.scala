@@ -167,6 +167,7 @@ object Launcher {
     val check = new commands.Check
     val run = new commands.Run
     val push = new commands.Push
+    val pull = new commands.Pull
     val repair = new commands.Repair
     val count = new commands.Count
     val waitForPartition = new commands.WaitForPartition

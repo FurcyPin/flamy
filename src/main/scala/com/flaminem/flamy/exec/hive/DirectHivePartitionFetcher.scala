@@ -21,7 +21,7 @@ import java.sql.{DriverManager, Statement}
 import com.flaminem.flamy.conf.FlamyContext
 import com.flaminem.flamy.model._
 import com.flaminem.flamy.model.exceptions.FlamyException
-import com.flaminem.flamy.model.metadata.{SchemaWithInfo, TableWithInfo}
+import com.flaminem.flamy.model.metadata.{SchemaWithInfo, TableWithInfo, TableWithParams}
 import com.flaminem.flamy.model.names.{ItemName, SchemaName, TableName, TablePartitionName}
 import com.flaminem.flamy.model.partitions.{PartitionWithEagerInfo, PartitionWithInfo, TablePartitioningInfo}
 import com.flaminem.flamy.utils.logging.Logging
@@ -36,6 +36,7 @@ class DirectHivePartitionFetcher(context: FlamyContext) extends HivePartitionFet
 
   private final val SCHEMA_NAME = "SCHEMA_NAME"
   private final val SCHEMA_LOCATION_URI = "SCHEMA_LOCATION_URI"
+  private final val SCHEMA_DESCRIPTION = "SCHEMA_DESCRIPTION"
 
   private final val TABLE_NAME = "TABLE_NAME"
   private final val PARTITION_NAME = "PARTITION_NAME"
@@ -46,6 +47,8 @@ class DirectHivePartitionFetcher(context: FlamyContext) extends HivePartitionFet
   private final val TABLE_INPUT_FORMAT = "TABLE_INPUT_FORMAT"
   private final val TABLE_OUTPUT_FORMAT = "TABLE_OUTPUT_FORMAT"
   private final val TABLE_SERDE = "TABLE_SERDE"
+  private final val TABLE_PARAM_KEY = "TABLE_PARAM_KEY"
+  private final val TABLE_PARAM_VALUE = "TABLE_PARAM_VALUE"
 
   private final val PARTITION_CREATE_TIME = "PARTITION_CREATE_TIME"
   private final val PARTITION_LOCATION = "PARTITION_LOCATION"
@@ -92,7 +95,7 @@ class DirectHivePartitionFetcher(context: FlamyContext) extends HivePartitionFet
        |   ON T."DB_ID" = D."DB_ID"
        | LEFT JOIN "PARTITIONS" P
        |   ON P."TBL_ID" = T."TBL_ID"
-       | LEFT JOIN ($partitionParamsQuery) PP
+       | LEFT JOIN ($partitionParamsSubQuery) PP
        |   ON PP."PART_ID" = P."PART_ID"
        | $where
        | GROUP BY PP."PART_ID"
@@ -131,7 +134,30 @@ class DirectHivePartitionFetcher(context: FlamyContext) extends HivePartitionFet
     )
   }
 
-  private def tablesQuery(where: String) =
+  private def tableParamsQuery(where: String) =
+    s""" SELECT
+       | D."NAME" as "$SCHEMA_NAME",
+       | T."TBL_NAME" as "$TABLE_NAME",
+       | T."TBL_TYPE" as "$TABLE_TYPE",
+       | ST."LOCATION" as "$TABLE_LOCATION",
+       | ST."INPUT_FORMAT" as "$TABLE_INPUT_FORMAT",
+       | ST."OUTPUT_FORMAT" as "$TABLE_OUTPUT_FORMAT",
+       | SDT."SLIB" as "$TABLE_SERDE",
+       | TP."PARAM_KEY" as "$TABLE_PARAM_KEY",
+       | TP."PARAM_VALUE" as "$TABLE_PARAM_VALUE",
+       | FROM "DBS" D
+       | JOIN "TBLS" T
+       | ON T."DB_ID" = D."DB_ID"
+       | JOIN "SDS" ST
+       | ON ST."SD_ID" = T."SD_ID"
+       | JOIN "SERDES" SDT
+       | ON SDT."SERDE_ID" = ST."SERDE_ID"
+       | JOIN "TABLE_PARAMS" TP
+       | ON TP."TBL_ID" = T."TBL_ID"
+       | $where
+       | """.stripMargin
+
+  private def tableQuery(where: String) =
     s""" SELECT
        | D."NAME" as "$SCHEMA_NAME",
        | T."TBL_NAME" as "$TABLE_NAME",
@@ -157,7 +183,7 @@ class DirectHivePartitionFetcher(context: FlamyContext) extends HivePartitionFet
        | $where
        | """.stripMargin
 
-  private val partitionParamsQuery =
+  private val partitionParamsSubQuery =
     s"""  SELECT
       |    "PART_ID",
       |    CASE WHEN "PARAM_KEY" = 'numFiles' THEN CAST("PARAM_VALUE" as BIGINT) ELSE 0 END as numFiles,
@@ -166,7 +192,7 @@ class DirectHivePartitionFetcher(context: FlamyContext) extends HivePartitionFet
       |  FROM "PARTITION_PARAMS"
       |""".stripMargin
 
-  private val tableParamsQuery =
+  private val tableParamsSubQuery =
     s"""  SELECT
       |    "TBL_ID",
       |    CASE WHEN "PARAM_KEY" = 'numFiles' THEN CAST("PARAM_VALUE" as BIGINT) ELSE 0 END as numFiles,
@@ -175,7 +201,7 @@ class DirectHivePartitionFetcher(context: FlamyContext) extends HivePartitionFet
       |  FROM "TABLE_PARAMS"
       |""".stripMargin
 
-  private def tableParametersQuery(where: String) =
+  private def tableInfoQuery(where: String) =
     s""" SELECT
        | MAX(D."NAME") as "$SCHEMA_NAME",
        | MAX(T."TBL_NAME") as "$TABLE_NAME",
@@ -188,9 +214,9 @@ class DirectHivePartitionFetcher(context: FlamyContext) extends HivePartitionFet
        |   ON T."DB_ID" = D."DB_ID"
        | LEFT JOIN "PARTITIONS" P
        |   ON P."TBL_ID" = T."TBL_ID"
-       | LEFT JOIN ($tableParamsQuery) TP
+       | LEFT JOIN ($tableParamsSubQuery) TP
        |   ON TP."TBL_ID" = T."TBL_ID"
-       | LEFT JOIN ($partitionParamsQuery) PP
+       | LEFT JOIN ($partitionParamsSubQuery) PP
        |   ON PP."PART_ID" = P."PART_ID"
        | $where
        | """.stripMargin
@@ -229,7 +255,8 @@ class DirectHivePartitionFetcher(context: FlamyContext) extends HivePartitionFet
   private val schemasQuery =
     s""" SELECT
        | D."NAME" as "$SCHEMA_NAME",
-       | D."DB_LOCATION_URI" as "$SCHEMA_LOCATION_URI"
+       | D."DB_LOCATION_URI" as "$SCHEMA_LOCATION_URI",
+       | D."DESC" as "$SCHEMA_DESCRIPTION"
        | FROM "DBS" D
        | """.stripMargin
 
@@ -237,6 +264,7 @@ class DirectHivePartitionFetcher(context: FlamyContext) extends HivePartitionFet
     s""" SELECT
        | MAX(D."NAME") as "$SCHEMA_NAME",
        | MAX(D."DB_LOCATION_URI") as "$SCHEMA_LOCATION_URI",
+       | MAX(D."DESC") as "$SCHEMA_DESCRIPTION",
        | COUNT(DISTINCT T."TBL_ID") as "$NUM_TABLES",
        | COALESCE(SUM(TP.numFiles), 0) + COALESCE(SUM(PP.numFiles), 0) as "$NUM_FILES",
        | COALESCE(SUM(TP.totalSize), 0) + COALESCE(SUM(PP.totalSize), 0) as "$TOTAL_SIZE",
@@ -246,9 +274,9 @@ class DirectHivePartitionFetcher(context: FlamyContext) extends HivePartitionFet
        |   ON T."DB_ID" = D."DB_ID"
        | LEFT JOIN "PARTITIONS" P
        |   ON P."TBL_ID" = T."TBL_ID"
-       | LEFT JOIN ($tableParamsQuery) TP
+       | LEFT JOIN ($tableParamsSubQuery) TP
        |   ON TP."TBL_ID" = T."TBL_ID"
-       | LEFT JOIN ($partitionParamsQuery) PP
+       | LEFT JOIN ($partitionParamsSubQuery) PP
        |   ON PP."PART_ID" = P."PART_ID"
        | $where
        | GROUP BY D."DB_ID"
@@ -340,9 +368,11 @@ class DirectHivePartitionFetcher(context: FlamyContext) extends HivePartitionFet
 
   lazy val partitionsData: LazyCachedIndexedData = new LazyCachedIndexedData(partitionsQuery)
 
-  lazy val tablesData: LazyCachedIndexedData = new LazyCachedIndexedData(tablesQuery)
+  lazy val tablesData: LazyCachedIndexedData = new LazyCachedIndexedData(tableQuery)
 
-  lazy val tableInfoData: LazyCachedIndexedData = new LazyCachedIndexedData(tableParametersQuery)
+  lazy val tablesParamsData: LazyCachedIndexedData = new LazyCachedIndexedData(tableParamsQuery)
+
+  lazy val tableInfoData: LazyCachedIndexedData = new LazyCachedIndexedData(tableInfoQuery)
 
   lazy val columnsData: TableIndexedData = new TableIndexedData(columnsQuery)
 
@@ -368,13 +398,30 @@ class DirectHivePartitionFetcher(context: FlamyContext) extends HivePartitionFet
     schemaInfoData.map{
       case (schemaName, row) =>
         new SchemaWithInfo(
-          None,
-          row(SCHEMA_LOCATION_URI),
-          schemaName,
-          Option(row(NUM_TABLES)).map{_.toInt},
-          Option(row(TOTAL_SIZE)).map{_.toLong},
-          Option(row(NUM_FILES)).map{_.toLong},
-          Option(row(MODIFICATION_TIME)).map{_.toLong * 1000}
+          creationTime = None,
+          location = row(SCHEMA_LOCATION_URI),
+          name = schemaName,
+          comment = Option(row(SCHEMA_DESCRIPTION)),
+          numTables = Option(row(NUM_TABLES)).map {_.toInt},
+          fileSize = Option(row(TOTAL_SIZE)).map {_.toLong},
+          fileCount = Option(row(NUM_FILES)).map {_.toLong},
+          modificationTime = Option(row(MODIFICATION_TIME)).map {_.toLong * 1000}
+        )
+    }
+  }
+
+  override def listSchemasWithLocation: Iterable[SchemaWithInfo] = {
+    schemasData.map{
+      case (schemaName, row) =>
+        new SchemaWithInfo(
+          creationTime = None,
+          location = row(SCHEMA_LOCATION_URI),
+          name = schemaName,
+          comment = Option(row(SCHEMA_DESCRIPTION)),
+          numTables = None,
+          fileSize = None,
+          fileCount = None,
+          modificationTime = None
         )
     }
   }
@@ -382,7 +429,7 @@ class DirectHivePartitionFetcher(context: FlamyContext) extends HivePartitionFet
   override def getTableWithInfo(tableName: TableName): Option[TableWithInfo] = {
     val partitionKeys: Seq[PartitionKey] = getPartitionKeys(tableName)
     tablesData(tableName).headOption.map{
-      case row: ResultRow =>
+      row: ResultRow =>
         val ioFormat = IOFormat(row(TABLE_INPUT_FORMAT), row(TABLE_OUTPUT_FORMAT), row(TABLE_SERDE))
         val info: ResultRow = tableInfoData(tableName).head
         val numParts: Option[Int] =
@@ -393,16 +440,33 @@ class DirectHivePartitionFetcher(context: FlamyContext) extends HivePartitionFet
             Option(info(NUM_PARTS)).map{_.toInt}
           }
         new TableWithInfo(
-          Option(row(TABLE_CREATE_TIME)).map{_.toLong * 1000},
-          row(TABLE_LOCATION),
-          ioFormat,
-          tableName,
-          numParts,
-          Option(info(TOTAL_SIZE)).map{_.toLong},
-          Option(info(NUM_FILES)).map{_.toLong},
-          Option(info(MODIFICATION_TIME)).map{_.toLong * 1000}
+          creationTime = Option(row(TABLE_CREATE_TIME)).map {_.toLong * 1000},
+          location = row(TABLE_LOCATION),
+          ioFormat = ioFormat,
+          name = tableName,
+          numPartitions = numParts,
+          fileSize = Option(info(TOTAL_SIZE)).map {_.toLong},
+          fileCount = Option(info(NUM_FILES)).map {_.toLong},
+          modificationTime = Option(info(MODIFICATION_TIME)).map {_.toLong * 1000}
         )
 
+    }
+  }
+
+  override def getTableWithParams(tableName: TableName): Option[TableWithParams] = {
+    tablesParamsData(tableName).headOption.map{
+      row: ResultRow =>
+        val ioFormat = IOFormat(row(TABLE_INPUT_FORMAT), row(TABLE_OUTPUT_FORMAT), row(TABLE_SERDE))
+        val paramsMap: Map[String, String] =
+          tablesParamsData(tableName).map{
+            row => row(TABLE_PARAM_KEY) ->  row(TABLE_PARAM_VALUE)
+          }.toMap
+        new TableWithParams(
+          tableName = tableName,
+          location = row(TABLE_LOCATION),
+          ioFormat = ioFormat,
+          params = paramsMap
+        )
     }
   }
 
@@ -428,13 +492,13 @@ class DirectHivePartitionFetcher(context: FlamyContext) extends HivePartitionFet
             val info: ResultRow = tableInfoData(tableName).head
             val p: PartitionWithEagerInfo =
               new PartitionWithEagerInfo(
-                Option(row(TABLE_CREATE_TIME)).map{_.toLong * 1000},
-                row(TABLE_LOCATION),
-                ioFormat,
-                Nil,
-                Option(info(TOTAL_SIZE)).map{_.toLong},
-                Option(info(NUM_FILES)).map{_.toLong},
-                Option(info(MODIFICATION_TIME)).map{_.toLong * 1000}
+                creationTime = Option(row(TABLE_CREATE_TIME)).map {_.toLong * 1000},
+                location = row(TABLE_LOCATION),
+                ioFormat = ioFormat,
+                columns = Nil,
+                fileSize = Option(info(TOTAL_SIZE)).map {_.toLong},
+                fileCount = Option(info(NUM_FILES)).map {_.toLong},
+                modificationTime = Option(info(MODIFICATION_TIME)).map {_.toLong * 1000}
               )
             if(p.creationTime == p.modificationTime) {
               /* If the modificationTime is the same as the creationTime, it means that the table was never populated */
@@ -454,13 +518,13 @@ class DirectHivePartitionFetcher(context: FlamyContext) extends HivePartitionFet
           val ioFormat = IOFormat(row(PARTITION_INPUT_FORMAT), row(PARTITION_OUTPUT_FORMAT), row(PARTITION_SERDE))
           val columns: Array[PartitionColumn] = row(PARTITION_NAME).split("/").map{s => val a = s.split("=") ; new PartitionColumn(a(0), Option(a(1)))}
           new PartitionWithEagerInfo(
-            Some(createTime.toLong * 1000),
-            row(PARTITION_LOCATION),
-            ioFormat,
-            columns,
-            Option(row(TOTAL_SIZE)).map{_.toLong},
-            Option(row(NUM_FILES)).map{_.toLong},
-            Option(row(MODIFICATION_TIME)).map{_.toLong * 1000}
+            creationTime = Some(createTime.toLong * 1000),
+            location = row(PARTITION_LOCATION),
+            ioFormat = ioFormat,
+            columns = columns,
+            fileSize = Option(row(TOTAL_SIZE)).map {_.toLong},
+            fileCount = Option(row(NUM_FILES)).map {_.toLong},
+            modificationTime = Option(row(MODIFICATION_TIME)).map {_.toLong * 1000}
           )
         }
       }
@@ -490,7 +554,7 @@ class DirectHivePartitionFetcher(context: FlamyContext) extends HivePartitionFet
     }
   }
 
-  def getPartitionKeys(tableName: TableName): Seq[PartitionKey] = {
+  private def getPartitionKeys(tableName: TableName): Seq[PartitionKey] = {
     val numberedPartitions: Iterable[(Int, PartitionKey)] =
       for {
         row: ResultRow <- tablesData(tableName)
@@ -519,13 +583,13 @@ class DirectHivePartitionFetcher(context: FlamyContext) extends HivePartitionFet
         val ioFormat = IOFormat(row(PARTITION_INPUT_FORMAT), row(PARTITION_OUTPUT_FORMAT), row(PARTITION_SERDE))
         val columns: Array[PartitionColumn] = row(PARTITION_NAME).split("/").map{s => val a = s.split("=") ; new PartitionColumn(a(0), Option(a(1)))}
         new PartitionWithEagerInfo(
-          Option(row(PARTITION_CREATE_TIME)).map{_.toLong * 1000},
-          row(PARTITION_LOCATION),
-          ioFormat,
-          columns,
-          Option(row(TOTAL_SIZE)).map{_.toLong},
-          Option(row(NUM_FILES)).map{_.toLong},
-          Option(row(MODIFICATION_TIME)).map{_.toLong * 1000}
+          creationTime = Option(row(PARTITION_CREATE_TIME)).map {_.toLong * 1000},
+          location = row(PARTITION_LOCATION),
+          ioFormat = ioFormat,
+          columns = columns,
+          fileSize = Option(row(TOTAL_SIZE)).map {_.toLong},
+          fileCount = Option(row(NUM_FILES)).map {_.toLong},
+          modificationTime = Option(row(MODIFICATION_TIME)).map {_.toLong * 1000}
         )
       }
 
@@ -540,6 +604,7 @@ class DirectHivePartitionFetcher(context: FlamyContext) extends HivePartitionFet
 
   override def clearCache(): Unit = {
     tablesData.clearCache()
+    tablesParamsData.clearCache()
     partitionsData.clearCache()
   }
 

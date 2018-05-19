@@ -29,6 +29,7 @@ class SchemaWithInfo(
   override val creationTime: Option[Long],
   override val location: String,
   val name: SchemaName,
+  val comment: Option[String],
   val numTables: Option[Int],
   fileSize: Option[Long],
   fileCount: Option[Long],

@@ -17,6 +17,7 @@
 package com.flaminem.flamy.model
 
 import com.flaminem.flamy.model.columns.{ColumnValue, ConstantValue, NoValue}
+import com.flaminem.flamy.parsing.hive.HiveParserUtils
 import com.flaminem.flamy.parsing.model.ColumnDependency
 import org.apache.hadoop.hive.metastore.api.FieldSchema
 
@@ -31,6 +32,15 @@ class Column (
 ) {
 
   val columnName: String = this.rawColumnName.toLowerCase
+
+  def formattedColumnName: String = {
+    if(HiveParserUtils.hiveKeywords.contains(columnName)) {
+      s"`$columnName`"
+    }
+    else {
+      columnName
+    }
+  }
 
   val columnType: Option[String] = this.rawColumnType.map{_.toLowerCase}
 

@@ -18,7 +18,7 @@ package com.flaminem.flamy.exec.hive
 
 import com.flaminem.flamy.conf.{Environment, FlamyConfVars, FlamyContext}
 import com.flaminem.flamy.model._
-import com.flaminem.flamy.model.metadata.{SchemaWithInfo, TableWithInfo}
+import com.flaminem.flamy.model.metadata.{SchemaWithInfo, TableWithInfo, TableWithParams}
 import com.flaminem.flamy.model.names.{ItemName, SchemaName, TableName}
 import com.flaminem.flamy.utils.logging.Logging
 
@@ -31,17 +31,29 @@ trait HiveTableFetcher extends AutoCloseable{
 
   def listSchemasWithInfo: Iterable[SchemaWithInfo]
 
+  def listSchemasWithLocation: Iterable[SchemaWithInfo]
+
   def listTablesNamesInSchema(schema: SchemaName): Iterable[TableName]
 
   def getTable(tableName: TableName): Option[TableInfo]
 
   def getTableWithInfo(table: TableName): Option[TableWithInfo]
 
+  def getTableWithParams(table: TableName): Option[TableWithParams]
+
   /* Since iterating over every table may be long, we handle interruptions */
   def listTablesWithInfo(itemFilter: ItemFilter): Iterable[TableWithInfo] = {
     listTableNames(itemFilter).flatMap{
       case _ if Thread.currentThread().isInterrupted => throw new InterruptedException
       case tableName => getTableWithInfo(tableName)
+    }
+  }
+
+  /* Since iterating over every table may be long, we handle interruptions */
+  def listTablesWithParams(itemFilter: ItemFilter): Iterable[TableWithParams] = {
+    listTableNames(itemFilter).flatMap{
+      case _ if Thread.currentThread().isInterrupted => throw new InterruptedException
+      case tableName => getTableWithParams(tableName)
     }
   }
 
@@ -72,7 +84,7 @@ trait HiveTableFetcher extends AutoCloseable{
   }
 
   def listTables(items: ItemName*): Iterable[TableInfo] = {
-    listTables(new ItemFilter(items, true))
+    items.collect{case tableName: TableName => getTable(tableName)}.flatten
   }
 
 }

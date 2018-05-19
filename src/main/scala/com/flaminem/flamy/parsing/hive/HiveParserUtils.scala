@@ -16,6 +16,8 @@
 
 package com.flaminem.flamy.parsing.hive
 
+import java.util
+
 import com.flaminem.flamy.model._
 import com.flaminem.flamy.model.columns.{ColumnValue, NoValue}
 import com.flaminem.flamy.model.exceptions.UnexpectedBehaviorException
@@ -45,6 +47,8 @@ object HiveParserUtils {
   implicit def nodeToASTNode(node: Node): ASTNode = {
     node.asInstanceOf[ASTNode]
   }
+
+  val hiveKeywords: Set[String] = HiveParser.getKeywords.map{_.toLowerCase()}.toSet
 
   /**
     * Get the children of a Node, avoid nulls for leaves.
