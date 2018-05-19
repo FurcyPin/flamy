@@ -24,7 +24,7 @@ import com.flaminem.flamy.utils.CliUtils
 import org.apache.hadoop.fs.Path
 import org.scalatest._
 
-class ClientHiveTableFetcherTest extends FreeSpec with Matchers with BeforeAndAfterAll {
+class ClientHivePartitionFetcherTest extends FreeSpec with Matchers with BeforeAndAfterAll {
 
   def launch(line: String): ReturnStatus = {
     val args: Array[String] = CliUtils.split(line).filter{_.nonEmpty}.toArray

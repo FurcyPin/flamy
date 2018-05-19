@@ -15,8 +15,14 @@ lazy val flamy =
   (project in file("."))
   .dependsOn(macros)
   .aggregate(macros)
-  .settings(commonSettings, Defaults.itSettings)
+  .settings(commonSettings)
   .configs(IntegrationTest)
+
+lazy val integration_tests =
+  (project in file("integration_tests"))
+  .dependsOn(flamy)
+  .configs(IntegrationTest)
+  .settings(commonSettings, Defaults.itSettings)
 
 scalacOptions in Compile ++= Seq("-unchecked",  "-deprecation",  "-feature")
 

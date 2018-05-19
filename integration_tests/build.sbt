@@ -1,10 +1,7 @@
 
+name := name + "-integration-tests"
 
-
-
-// License: Apache 2.0
 libraryDependencies += "org.scalatest" %% "scalatest" % "2.1.4" % "it,test"
-
 
 fork in IntegrationTest := true
 
@@ -18,6 +15,5 @@ testOptions in IntegrationTest += Tests.Setup( () => "tests/start-it-docker".run
 testOptions in IntegrationTest += Tests.Setup( () => "sleep 30".! )
 
 testOptions in IntegrationTest += Tests.Cleanup( () => "docker kill flamy-it".! )
-
 
 
