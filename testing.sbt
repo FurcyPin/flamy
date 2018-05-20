@@ -1,23 +1,13 @@
 
 
-
-
 // License: Apache 2.0
 libraryDependencies += "org.scalatest" %% "scalatest" % "2.1.4" % "it,test"
 
 
-fork in IntegrationTest := true
+parallelExecution in Test := false
 
-parallelExecution in IntegrationTest := false
+javaOptions in Test += "-XX:MaxPermSize=1G -XX:MaxMetaspaceSize=1G"
 
-javaOptions in IntegrationTest += "-XX:MaxPermSize=1G -XX:MaxMetaspaceSize=1G"
-
-
-testOptions in IntegrationTest += Tests.Setup( () => "tests/start-it-docker".run )
-
-testOptions in IntegrationTest += Tests.Setup( () => "sleep 30".! )
-
-testOptions in IntegrationTest += Tests.Cleanup( () => "docker kill flamy-it".! )
-
+fork in Test := true
 
 
